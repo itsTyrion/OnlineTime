@@ -1,49 +1,37 @@
-package lu.r3flexi0n.bungeeonlinetime.objects;
+package lu.r3flexi0n.bungeeonlinetime.objects
 
-public class OnlineTimePlayer {
+class OnlineTimePlayer {
+    var savedOnlineTime: Long? = null
+        private set
+    private val joinProxyTimestamp = System.currentTimeMillis()
+    private var timeOnDisabledServers = 0L
+    private var joinDisabledServerTimestamp = 0L
 
-    private Long savedOnlineTime = null;
-
-    private final long joinProxyTimestamp;
-
-    private long timeOnDisabledServers;
-
-    private long joinDisabledServerTimestamp;
-
-    public OnlineTimePlayer() {
-        this.joinProxyTimestamp = System.currentTimeMillis();
+    fun setSavedOnlineTime(onlineTime: Long) {
+        savedOnlineTime = onlineTime
     }
 
-    public void setSavedOnlineTime(long onlineTime) {
-        this.savedOnlineTime = onlineTime;
-    }
+    fun getSessionOnlineTime() =
+        System.currentTimeMillis() - joinProxyTimestamp - getTimeOnDisabledServers()
 
-    public Long getSavedOnlineTime() {
-        return savedOnlineTime;
-    }
-
-    public long getSessionOnlineTime() {
-        return System.currentTimeMillis() - joinProxyTimestamp - getTimeOnDisabledServers();
-    }
-
-    private long getTimeOnDisabledServers() {
-        long time = timeOnDisabledServers;
+    private fun getTimeOnDisabledServers(): Long {
+        var time = timeOnDisabledServers
         if (joinDisabledServerTimestamp > 0) {
-            time += (System.currentTimeMillis() - joinDisabledServerTimestamp);
+            time += System.currentTimeMillis() - joinDisabledServerTimestamp
         }
-        return time;
+        return time
     }
 
-    public void joinDisabledServer() {
-        if (joinDisabledServerTimestamp == 0) {
-            joinDisabledServerTimestamp = System.currentTimeMillis();
+    fun joinDisabledServer() {
+        if (joinDisabledServerTimestamp == 0L) {
+            joinDisabledServerTimestamp = System.currentTimeMillis()
         }
     }
 
-    public void leaveDisabledServer() {
+    fun leaveDisabledServer() {
         if (joinDisabledServerTimestamp > 0) {
-            timeOnDisabledServers += System.currentTimeMillis() - joinDisabledServerTimestamp;
-            joinDisabledServerTimestamp = 0;
+            timeOnDisabledServers += System.currentTimeMillis() - joinDisabledServerTimestamp
+            joinDisabledServerTimestamp = 0
         }
     }
 }

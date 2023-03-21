@@ -1,51 +1,46 @@
-package lu.r3flexi0n.bungeeonlinetime.settings;
+package lu.r3flexi0n.bungeeonlinetime.settings
 
-import net.md_5.bungee.config.Configuration;
-import net.md_5.bungee.config.ConfigurationProvider;
-import net.md_5.bungee.config.YamlConfiguration;
+import net.md_5.bungee.config.Configuration
+import net.md_5.bungee.config.ConfigurationProvider
+import net.md_5.bungee.config.YamlConfiguration
+import java.io.File
+import java.io.IOException
 
-import java.io.File;
-import java.io.IOException;
+class SettingsFile(private val file: File) {
 
-public class SettingsFile {
+    private val provider = ConfigurationProvider.getProvider(YamlConfiguration::class.java)
 
-    private final ConfigurationProvider provider = ConfigurationProvider.getProvider(YamlConfiguration.class);
-
-    private final File file;
-
-    public SettingsFile(File file) {
-        this.file = file;
-    }
-
-    public void create() throws Exception {
-        File directory = file.getParentFile();
+    @Throws(Exception::class)
+    fun create() {
+        val directory = file.parentFile
         if (directory != null && !directory.exists()) {
-            boolean success = directory.mkdirs();
+            val success = directory.mkdirs()
             if (!success) {
-                throw new Exception();
+                throw Exception()
             }
         }
 
         if (!file.exists()) {
-            boolean success = file.createNewFile();
+            val success = file.createNewFile()
             if (!success) {
-                throw new Exception();
+                throw Exception()
             }
         }
-
     }
 
-    public Configuration loadConfig() throws IOException {
-        return provider.load(file);
+    @Throws(IOException::class)
+    fun loadConfig(): Configuration {
+        return provider.load(file)
     }
 
-    public void saveConfig(Configuration config) throws IOException {
-        provider.save(config, file);
+    @Throws(IOException::class)
+    fun saveConfig(config: Configuration) {
+        provider.save(config, file)
     }
 
-    public void addDefault(Configuration config, String key, Object value) {
+    fun addDefault(config: Configuration, key: String, value: Any?) {
         if (!config.contains(key)) {
-            config.set(key, value);
+            config[key] = value
         }
     }
 }

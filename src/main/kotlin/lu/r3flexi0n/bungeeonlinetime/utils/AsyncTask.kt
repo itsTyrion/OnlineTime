@@ -1,42 +1,43 @@
-package lu.r3flexi0n.bungeeonlinetime.utils;
+package lu.r3flexi0n.bungeeonlinetime.utils
 
-import net.md_5.bungee.api.ProxyServer;
-import net.md_5.bungee.api.plugin.Plugin;
+import net.md_5.bungee.api.ProxyServer
+import net.md_5.bungee.api.plugin.Plugin
 
-public class AsyncTask {
+class AsyncTask(private val plugin: Plugin) {
 
-    private final Plugin plugin;
-
-    public AsyncTask(Plugin plugin) {
-        this.plugin = plugin;
-    }
-
-    private void execute(Task task, boolean retry) {
-        ProxyServer.getInstance().getScheduler().runAsync(plugin, () -> {
+    private fun <T> execute(task: Task<T>, retry: Boolean) {
+        ProxyServer.getInstance().scheduler.runAsync(plugin) {
             try {
-                task.onSuccess(task.doTask());
-            } catch (Exception ex) {
+                task.onSuccess(task.doTask())
+            } catch (ex: Exception) {
                 if (retry) {
-                    execute(task, false);
-                    return;
+                    execute(task, false)
+                    return@runAsync
                 }
-                task.onError(ex);
+                task.onError(ex)
             }
-        });
+        }
     }
 
-    public void execute(Task task) {
-        execute(task, true);
+    fun <T> execute(task: Task<T>) = execute(task, true)
+
+    fun <T> execute(doTask: () -> T, onSuccess: (T) -> Unit, onError: (Exception) -> Unit) {
+        execute(object : Task<T> {
+            @Throws(Exception::class)
+            override fun doTask() = doTask()
+
+            override fun onSuccess(response: T) = onSuccess(response)
+
+            override fun onError(exception: Exception) = onError(exception)
+        }, true)
     }
 
-    public interface Task<T> {
+    interface Task<T> {
+        @Throws(Exception::class)
+        fun doTask(): T
 
-        T doTask() throws Exception;
+        fun onSuccess(response: T)
 
-        void onSuccess(T response);
-
-        void onError(Exception exception);
-
+        fun onError(exception: Exception)
     }
-
 }

@@ -1,94 +1,78 @@
-package lu.r3flexi0n.bungeeonlinetime;
+package lu.r3flexi0n.bungeeonlinetime
 
-import lu.r3flexi0n.bungeeonlinetime.database.Database;
-import lu.r3flexi0n.bungeeonlinetime.database.MySQLDatabase;
-import lu.r3flexi0n.bungeeonlinetime.database.SQLiteDatabase;
-import lu.r3flexi0n.bungeeonlinetime.objects.OnlineTimePlayer;
-import lu.r3flexi0n.bungeeonlinetime.settings.PluginSettings;
-import lu.r3flexi0n.bungeeonlinetime.settings.SettingsFile;
-import lu.r3flexi0n.bungeeonlinetime.utils.Utils;
-import net.md_5.bungee.api.plugin.Plugin;
+import lu.r3flexi0n.bungeeonlinetime.database.Database
+import lu.r3flexi0n.bungeeonlinetime.database.MySQLDatabase
+import lu.r3flexi0n.bungeeonlinetime.database.SQLiteDatabase
+import lu.r3flexi0n.bungeeonlinetime.objects.OnlineTimePlayer
+import lu.r3flexi0n.bungeeonlinetime.settings.PluginSettings
+import lu.r3flexi0n.bungeeonlinetime.settings.SettingsFile
+import net.md_5.bungee.api.plugin.Plugin
+import java.io.File
+import java.util.*
 
-import java.io.File;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+class BungeeOnlineTimePlugin : Plugin() {
 
-public class BungeeOnlineTimePlugin extends Plugin {
+    lateinit var settings: HashMap<String, Any>
 
-    public HashMap<String, Object> settings;
+    lateinit var database: Database
 
-    public Database database;
+    val onlineTimePlayers = HashMap<UUID, OnlineTimePlayer>()
 
-    public final Map<UUID, OnlineTimePlayer> onlineTimePlayers = new HashMap<>();
+    val pluginMessageChannel = "bungeeonlinetime:get"
 
-    public final String pluginMessageChannel = "bungeeonlinetime:get";
-
-    @Override
-    public void onEnable() {
-
-        SettingsFile settingsFile = new SettingsFile(new File(getDataFolder(), "settings.yml"));
+    override fun onEnable() {
+        val settingsFile = SettingsFile(File(dataFolder, "settings.yml"))
         try {
-            settingsFile.create();
-        } catch (Exception ex) {
-            Utils.log("Error while creating settings file. Disabling plugin...");
-            ex.printStackTrace();
-            return;
+            settingsFile.create()
+        } catch (ex: Exception) {
+            logger.severe("Error while creating settings file. Disabling plugin...")
+            ex.printStackTrace()
+            return
         }
 
-        PluginSettings pluginSettings = new PluginSettings(settingsFile);
-        try {
-            pluginSettings.setDefaultSettings();
-            settings = pluginSettings.loadSettings();
-        } catch (Exception ex) {
-            Utils.log("Error while loading settings file. Disabling plugin...");
-            ex.printStackTrace();
-            return;
+        val pluginSettings = PluginSettings(settingsFile)
+        settings = try {
+            pluginSettings.setDefaultSettings()
+            pluginSettings.loadSettings()
+        } catch (ex: Exception) {
+            logger.severe("Error while loading settings file. Disabling plugin...")
+            ex.printStackTrace()
+            return
         }
 
-        boolean mysqlEnabled = (boolean) settings.get("MySQL.enabled");
-        if (mysqlEnabled) {
-
-            String host = (String) settings.get("MySQL.host");
-            int port = (int) settings.get("MySQL.port");
-            String db = (String) settings.get("MySQL.database");
-            String user = (String) settings.get("MySQL.username");
-            String pass = (String) settings.get("MySQL.password");
-
-            database = new MySQLDatabase(host, port, db, user, pass);
-
+        val mysqlEnabled = settings["MySQL.enabled"] as Boolean
+        database = if (mysqlEnabled) {
+            val host = settings["MySQL.host"] as String
+            val port = settings["MySQL.port"] as Int
+            val db =   settings["MySQL.database"] as String
+            val user = settings["MySQL.username"] as String
+            val pass = settings["MySQL.password"] as String
+            MySQLDatabase(host, port, db, user, pass)
         } else {
-
-            File databaseFile = new File(getDataFolder(), "BungeeOnlineTime.db");
-
-            database = new SQLiteDatabase(databaseFile);
-
+            val databaseFile = File(dataFolder, "BungeeOnlineTime.db")
+            SQLiteDatabase(databaseFile)
         }
 
         try {
-            Utils.log("Connecting to " + database.databaseName + "...");
-            database.openConnection();
-            database.createTable();
-            database.createIndex();
-            Utils.log("Successfully connected to " + database.databaseName + ".");
-        } catch (Exception ex) {
-            Utils.log("Error while connecting to " + database.databaseName + ". Disabling plugin...");
-            ex.printStackTrace();
-            return;
+            logger.info("Connecting to " + database.databaseName + "...")
+            database.openConnection()
+            database.createTable()
+            database.createIndex()
+            logger.info("Successfully connected to " + database.databaseName + ".")
+        } catch (ex: Exception) {
+            logger.severe("Error while connecting to " + database.databaseName + ". Disabling plugin...")
+            ex.printStackTrace()
+            return
         }
 
-        String[] commandAliases = ((List<String>) settings.get("Plugin.commandAliases")).toArray(new String[0]);
+        val commandAliases = (settings["Plugin.commandAliases"] as List<String>).toTypedArray()
+        val command = OnlineTimeCommand(this, commandAliases[0], *commandAliases)
 
-        OnlineTimeCommand command = new OnlineTimeCommand(this, commandAliases[0], null, commandAliases);
-        getProxy().getPluginManager().registerCommand(this, command);
+        proxy.pluginManager.registerCommand(this, command)
+        proxy.pluginManager.registerListener(this, OnlineTimeListener(this))
 
-        OnlineTimeListener listener = new OnlineTimeListener(this);
-        getProxy().getPluginManager().registerListener(this, listener);
-
-        boolean usePlaceholderApi = (boolean) settings.get("Plugin.usePlaceholderApi");
-        if (usePlaceholderApi) {
-            getProxy().registerChannel(pluginMessageChannel);
+        if (settings["Plugin.usePlaceholderApi"] as Boolean) {
+            proxy.registerChannel(pluginMessageChannel)
         }
     }
 }
