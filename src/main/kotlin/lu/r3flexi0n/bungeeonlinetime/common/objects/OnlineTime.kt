@@ -1,4 +1,4 @@
-package lu.r3flexi0n.bungeeonlinetime.objects
+package lu.r3flexi0n.bungeeonlinetime.common.objects
 
 import java.util.*
 

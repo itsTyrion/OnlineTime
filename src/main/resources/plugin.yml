@@ -1,4 +1,4 @@
 name: BungeeOnlineTime
-main: lu.r3flexi0n.bungeeonlinetime.BungeeOnlineTimePlugin
+main: lu.r3flexi0n.bungeeonlinetime.bungee.BungeeOnlineTimePlugin
 version: 8.3
 authors: [ R3fleXi0n, itsTyrion ]
