@@ -4,12 +4,9 @@ import com.velocitypowered.api.event.Subscribe
 import com.velocitypowered.api.event.connection.DisconnectEvent
 import com.velocitypowered.api.event.connection.PostLoginEvent
 import com.velocitypowered.api.event.player.ServerConnectedEvent
-import com.velocitypowered.api.proxy.Player
 import lu.r3flexi0n.bungeeonlinetime.common.objects.OnlineTimePlayer
+import lu.r3flexi0n.bungeeonlinetime.common.utils.Utils
 import lu.r3flexi0n.bungeeonlinetime.common.utils.asyncTask
-import java.io.ByteArrayOutputStream
-import java.io.DataOutputStream
-import java.io.IOException
 
 class OnlineTimeListener(private val plugin: VelocityOnlineTimePlugin) {
     private val logger = plugin.logger
@@ -33,7 +30,8 @@ class OnlineTimeListener(private val plugin: VelocityOnlineTimePlugin) {
 
                     val savedOnlineTime = if (onlineTimes.isNotEmpty()) onlineTimes[0].time else 0L
                     onlineTimePlayer.setSavedOnlineTime(savedOnlineTime)
-                    sendOnlineTimeToServer(player, savedOnlineTime)
+                    val arr = Utils.onlineTimePluginMessageArr(onlineTimePlayer, player.uniqueId)
+                    player.currentServer.get().sendPluginMessage(plugin.pluginMessageChannel, arr)
                 },
                 onError = { ex ->
                     logger.error("Error while loading online time for player $name.")
@@ -56,8 +54,8 @@ class OnlineTimeListener(private val plugin: VelocityOnlineTimePlugin) {
         if (usePlaceholderApi) {
             val savedOnlineTime = onlineTimePlayer.savedOnlineTime
             if (savedOnlineTime != null) {
-                val totalOnlineTime = savedOnlineTime + onlineTimePlayer.getSessionOnlineTime()
-                sendOnlineTimeToServer(player, totalOnlineTime)
+                val arr = Utils.onlineTimePluginMessageArr(onlineTimePlayer, player.uniqueId)
+                player.currentServer.get().sendPluginMessage(plugin.pluginMessageChannel, arr)
             }
         }
     }
@@ -78,20 +76,5 @@ class OnlineTimeListener(private val plugin: VelocityOnlineTimePlugin) {
             onSuccess = {},
             onError = { ex -> logger.error("Error while saving online time for player $name.", ex) }
         )
-    }
-
-    private fun sendOnlineTimeToServer(player: Player, onlineTime: Long) {
-        player.currentServer.ifPresent { server ->
-            try {
-                val baos = ByteArrayOutputStream()
-                val data = DataOutputStream(baos)
-                data.writeUTF(player.uniqueId.toString())
-                data.writeLong(onlineTime / 1000)
-                server.sendPluginMessage(plugin.pluginMessageChannel, baos.toByteArray())
-                data.close()
-            } catch (ex: IOException) {
-                logger.error("Error while sending plugin message.", ex)
-            }
-        }
     }
 }

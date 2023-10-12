@@ -1,16 +1,13 @@
 package lu.r3flexi0n.bungeeonlinetime.bungee
 
 import lu.r3flexi0n.bungeeonlinetime.common.objects.OnlineTimePlayer
+import lu.r3flexi0n.bungeeonlinetime.common.utils.Utils
 import lu.r3flexi0n.bungeeonlinetime.common.utils.asyncTask
-import net.md_5.bungee.api.connection.ProxiedPlayer
 import net.md_5.bungee.api.event.PlayerDisconnectEvent
 import net.md_5.bungee.api.event.PostLoginEvent
 import net.md_5.bungee.api.event.ServerSwitchEvent
 import net.md_5.bungee.api.plugin.Listener
 import net.md_5.bungee.event.EventHandler
-import java.io.ByteArrayOutputStream
-import java.io.DataOutputStream
-import java.io.IOException
 
 class OnlineTimeListener(private val plugin: BungeeOnlineTimePlugin) : Listener {
     private val logger = plugin.logger
@@ -34,7 +31,8 @@ class OnlineTimeListener(private val plugin: BungeeOnlineTimePlugin) : Listener 
 
                     val savedOnlineTime = if (onlineTimes.isNotEmpty()) onlineTimes[0].time else 0L
                     onlineTimePlayer.setSavedOnlineTime(savedOnlineTime)
-                    sendOnlineTimeToServer(player, savedOnlineTime)
+                    val arr = Utils.onlineTimePluginMessageArr(onlineTimePlayer, player.uniqueId)
+                    player.server.sendData(plugin.pluginMessageChannel, arr)
                 },
                 onError = { ex ->
                     logger.error("Error while loading online time for player $name.", ex)
@@ -56,8 +54,8 @@ class OnlineTimeListener(private val plugin: BungeeOnlineTimePlugin) : Listener 
         if (usePlaceholderApi) {
             val savedOnlineTime = onlineTimePlayer.savedOnlineTime
             if (savedOnlineTime != null) {
-                val totalOnlineTime = savedOnlineTime + onlineTimePlayer.getSessionOnlineTime()
-                sendOnlineTimeToServer(player, totalOnlineTime)
+                val arr = Utils.onlineTimePluginMessageArr(onlineTimePlayer, player.uniqueId)
+                server.sendData(plugin.pluginMessageChannel, arr)
             }
         }
     }
@@ -78,19 +76,5 @@ class OnlineTimeListener(private val plugin: BungeeOnlineTimePlugin) : Listener 
             onSuccess = {},
             onError = { ex -> logger.error("Error while saving online time for player $name.", ex) }
         )
-    }
-
-    private fun sendOnlineTimeToServer(player: ProxiedPlayer, onlineTime: Long) {
-        val server = player.server ?: return
-        try {
-            val out = ByteArrayOutputStream()
-            val data = DataOutputStream(out)
-            data.writeUTF(player.uniqueId.toString())
-            data.writeLong(onlineTime / 1000)
-            server.sendData(plugin.pluginMessageChannel, out.toByteArray())
-            data.close()
-        } catch (ex: IOException) {
-            logger.error("Error while sending plugin message.", ex)
-        }
     }
 }

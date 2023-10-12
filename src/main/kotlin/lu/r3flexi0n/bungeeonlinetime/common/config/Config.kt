@@ -36,6 +36,7 @@ class Config {
         var disabledServers: List<String> = mutableListOf("lobby-1", "lobby-2")
         var usePlaceholderApi = false
         var topOnlineTimePageLimit = 10
+        var placeholderRefreshTimer = 1
     }
 
     class MySQL {
