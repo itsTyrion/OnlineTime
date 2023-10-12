@@ -54,7 +54,6 @@ class OnlineTimeCommandBase(
             var rank = (page - 1) * topOnlineTimePageLimit + 1
             val headerPlaceholders = mapOf("%PAGE%" to page)
             sendMessage.accept(config.language.topTimeAbove, headerPlaceholders)
-//            sendMessage(player, config.language.topTimeAbove, headerPlaceholders)
 
             for (onlineTime in response) {
                 val sessionTime = onlineTimePlayers.get()[onlineTime.uuid]?.getSessionOnlineTime() ?: 0
@@ -68,21 +67,18 @@ class OnlineTimeCommandBase(
                     "%MINUTES%" to total.toMinutes() % 60
                 )
                 sendMessage.accept(config.language.topTime, placeholders)
-//                sendMessage(player, config.language.topTime, placeholders)
                 rank++
             }
             sendMessage.accept(config.language.topTimeBelow, headerPlaceholders)
-//            sendMessage(player, config.language.topTimeBelow, headerPlaceholders)
         }, onError = { e ->
             sendMessage.accept(config.language.error, null)
-//            sendMessage(player, config.language.error)
             logger.error("Error while loading top online times.", e)
         })
     }
 
     fun sendReset(targetPlayerName: String, sendMessage: BiConsumer<String, Map<String, Any>?>) {
         asyncTask(doTask = {
-            null
+            database.resetOnlineTime(targetPlayerName)
         }, onSuccess = {
             sendMessage.accept(config.language.resetPlayer, mapOf("%PLAYER%" to targetPlayerName))
         }, onError = { e ->
@@ -94,6 +90,7 @@ class OnlineTimeCommandBase(
     fun sendResetAll(sendMessage: BiConsumer<String, Map<String, Any>?>) {
         asyncTask(doTask = {
             database.resetAllOnlineTimes()
+            onlineTimePlayers.get().forEach { (_, value) -> value.setSavedOnlineTime(0L) }
         }, onSuccess = {
             sendMessage.accept(config.language.resetAll, emptyMap())
         }, onError = { e ->

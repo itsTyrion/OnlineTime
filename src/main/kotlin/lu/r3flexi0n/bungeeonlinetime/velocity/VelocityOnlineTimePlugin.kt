@@ -23,7 +23,7 @@ import java.util.concurrent.TimeUnit
 
 @Plugin(id = "onlinetime", name = "OnlineTime")
 class VelocityOnlineTimePlugin @Inject constructor(
-    private val proxy: ProxyServer,
+    val proxy: ProxyServer,
     val logger: Logger,
     @DataDirectory val dataFolder: Path
 ) {
