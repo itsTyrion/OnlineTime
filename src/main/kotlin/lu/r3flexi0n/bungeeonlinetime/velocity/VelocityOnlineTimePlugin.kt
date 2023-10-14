@@ -6,7 +6,7 @@ import com.velocitypowered.api.event.proxy.ProxyInitializeEvent
 import com.velocitypowered.api.plugin.Plugin
 import com.velocitypowered.api.plugin.annotation.DataDirectory
 import com.velocitypowered.api.proxy.ProxyServer
-import com.velocitypowered.api.proxy.messages.LegacyChannelIdentifier
+import com.velocitypowered.api.proxy.messages.MinecraftChannelIdentifier
 import lu.r3flexi0n.bungeeonlinetime.common.config.Config
 import lu.r3flexi0n.bungeeonlinetime.common.config.ConfigLoader
 import lu.r3flexi0n.bungeeonlinetime.common.db.Database
@@ -34,7 +34,7 @@ class VelocityOnlineTimePlugin @Inject constructor(
 
     val onlineTimePlayers = HashMap<UUID, OnlineTimePlayer>()
 
-    val pluginMessageChannel = LegacyChannelIdentifier("bungeeonlinetime:get")
+    val pluginMessageChannel = MinecraftChannelIdentifier.from("bungeeonlinetime:get")
 
 
     @Subscribe
@@ -78,7 +78,7 @@ class VelocityOnlineTimePlugin @Inject constructor(
                 proxy.scheduler.buildTask(this) { ->
                     for (player in proxy.allPlayers) {
                         val onlineTimePlayer = onlineTimePlayers[player.uniqueId] ?: continue
-                        val arr = Utils.onlineTimePluginMessageArr(onlineTimePlayer, player.uniqueId)
+                        val arr = Utils.createPluginMessageArr(onlineTimePlayer, player.uniqueId)
                         if (arr != null)
                             player.currentServer.ifPresent {it.sendPluginMessage(pluginMessageChannel, arr) }
                     }

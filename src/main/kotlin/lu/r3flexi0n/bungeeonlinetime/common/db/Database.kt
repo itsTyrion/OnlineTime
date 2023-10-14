@@ -98,7 +98,7 @@ abstract class Database(val dbName: String, private val dbClass: Array<String>, 
 
     @Throws(SQLException::class)
     private fun getOnlineTimesFromResultSet(resultSet: ResultSet): List<OnlineTime> {
-        val result: MutableList<OnlineTime> = ArrayList()
+        val result = ArrayList<OnlineTime>()
         while (resultSet.next()) {
             val uuid = UUID.fromString(resultSet.getString("uuid"))
             val name = resultSet.getString("name")

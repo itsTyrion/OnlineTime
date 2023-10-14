@@ -38,8 +38,7 @@ class BungeeOnlineTimePlugin : Plugin() {
         database = if (config.mySQL.enabled) {
             MySQLDatabase(config.mySQL)
         } else {
-            val databaseFile = File(dataFolder, "BungeeOnlineTime.db")
-            SQLiteDatabase(databaseFile)
+            SQLiteDatabase(File(dataFolder, "BungeeOnlineTime.db"))
         }
 
         try {
@@ -66,7 +65,7 @@ class BungeeOnlineTimePlugin : Plugin() {
                 proxy.scheduler.schedule(this, {
                     for (player in proxy.players) {
                         val onlineTimePlayer = onlineTimePlayers[player.uniqueId] ?: continue
-                        val arr = Utils.onlineTimePluginMessageArr(onlineTimePlayer, player.uniqueId)
+                        val arr = Utils.createPluginMessageArr(onlineTimePlayer, player.uniqueId)
                         if (arr != null)
                             player.server?.sendData(pluginMessageChannel, arr)
                     }

@@ -30,7 +30,7 @@ class OnlineTimeListener(private val plugin: VelocityOnlineTimePlugin) {
 
                     val savedOnlineTime = if (onlineTimes.isNotEmpty()) onlineTimes[0].time else 0L
                     onlineTimePlayer.setSavedOnlineTime(savedOnlineTime)
-                    val arr = Utils.onlineTimePluginMessageArr(onlineTimePlayer, player.uniqueId)
+                    val arr = Utils.createPluginMessageArr(onlineTimePlayer, player.uniqueId)
                     player.currentServer.get().sendPluginMessage(plugin.pluginMessageChannel, arr)
                 },
                 onError = { ex ->
@@ -54,7 +54,7 @@ class OnlineTimeListener(private val plugin: VelocityOnlineTimePlugin) {
         if (usePlaceholderApi) {
             val savedOnlineTime = onlineTimePlayer.savedOnlineTime
             if (savedOnlineTime != null) {
-                val arr = Utils.onlineTimePluginMessageArr(onlineTimePlayer, player.uniqueId)
+                val arr = Utils.createPluginMessageArr(onlineTimePlayer, player.uniqueId)
                 player.currentServer.get().sendPluginMessage(plugin.pluginMessageChannel, arr)
             }
         }

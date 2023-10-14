@@ -3,7 +3,6 @@ package lu.r3flexi0n.bungeeonlinetime.common.utils
 import com.google.common.util.concurrent.ThreadFactoryBuilder
 import java.util.concurrent.Executors
 
-
 private val service = Executors.newCachedThreadPool(
     ThreadFactoryBuilder().setNameFormat("OnlineTime Scheduler Thread #%1\$d").build()
 )

@@ -23,22 +23,18 @@ class OnlineTimeListener(private val plugin: BungeeOnlineTimePlugin) : Listener 
         val uuid = player.uniqueId
         val onlineTimePlayer = OnlineTimePlayer()
         plugin.onlineTimePlayers[uuid] = onlineTimePlayer
-        if (usePlaceholderApi) {
-            val name = player.name
+        if (usePlaceholderApi)
             asyncTask(
                 doTask = { plugin.database.getOnlineTime(uuid.toString()) },
                 onSuccess = { onlineTimes ->
 
                     val savedOnlineTime = if (onlineTimes.isNotEmpty()) onlineTimes[0].time else 0L
                     onlineTimePlayer.setSavedOnlineTime(savedOnlineTime)
-                    val arr = Utils.onlineTimePluginMessageArr(onlineTimePlayer, player.uniqueId)
+                    val arr = Utils.createPluginMessageArr(onlineTimePlayer, player.uniqueId)
                     player.server.sendData(plugin.pluginMessageChannel, arr)
                 },
-                onError = { ex ->
-                    logger.error("Error while loading online time for player $name.", ex)
-                }
+                onError = { logger.error("Error while loading online time for player ${player.name}.", it) }
             )
-        }
     }
 
     @EventHandler
@@ -51,12 +47,10 @@ class OnlineTimeListener(private val plugin: BungeeOnlineTimePlugin) : Listener 
         } else {
             onlineTimePlayer.leaveDisabledServer()
         }
-        if (usePlaceholderApi) {
-            val savedOnlineTime = onlineTimePlayer.savedOnlineTime
-            if (savedOnlineTime != null) {
-                val arr = Utils.onlineTimePluginMessageArr(onlineTimePlayer, player.uniqueId)
-                server.sendData(plugin.pluginMessageChannel, arr)
-            }
+        if (usePlaceholderApi && onlineTimePlayer.savedOnlineTime != null) {
+
+            val arr = Utils.createPluginMessageArr(onlineTimePlayer, player.uniqueId)
+            server.sendData(plugin.pluginMessageChannel, arr)
         }
     }
 
@@ -64,17 +58,14 @@ class OnlineTimeListener(private val plugin: BungeeOnlineTimePlugin) : Listener 
     fun onLeave(e: PlayerDisconnectEvent) {
         val player = e.player
         val uuid = player.uniqueId
-        val onlinePlayer = plugin.onlineTimePlayers[uuid] ?: return
-        plugin.onlineTimePlayers.remove(uuid)
+        val onlinePlayer = plugin.onlineTimePlayers.remove(uuid) ?: return
         val time = onlinePlayer.getSessionOnlineTime()
-        if (time < 5000L) {
-            return
+        if (time > 5000L) {
+            asyncTask(
+                doTask = { plugin.database.updateOnlineTime(uuid.toString(), player.name, time) },
+                onSuccess = {},
+                onError = { logger.error("Error while saving online time for player ${player.name}.", it) }
+            )
         }
-        val name = player.name
-        asyncTask(
-            doTask = { plugin.database.updateOnlineTime(uuid.toString(), name, time) },
-            onSuccess = {},
-            onError = { ex -> logger.error("Error while saving online time for player $name.", ex) }
-        )
     }
 }

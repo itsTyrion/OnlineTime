@@ -54,7 +54,7 @@ class OnlineTimeCommand(private val plugin: BungeeOnlineTimePlugin, cmd: String,
                 base.sendReset(name) { msg, placeholders -> send(sender, msg, placeholders) }
                 val player = plugin.proxy.getPlayer(name)
                 if (player != null)
-                    plugin.onlineTimePlayers[player.uniqueId]!!.setSavedOnlineTime(0L)
+                    plugin.onlineTimePlayers[player.uniqueId]?.setSavedOnlineTime(0L)
             }
 
         } else if (args.size == 1 && arg0 == "resetall") {

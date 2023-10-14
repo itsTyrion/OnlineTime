@@ -21,23 +21,23 @@ class OnlineTimeCommandBase(
         asyncTask(doTask = {
             database.getOnlineTime(targetPlayerName)
 
-        }, onSuccess@{ response ->
+        }, onSuccess = { response ->
             if (response.isEmpty()) {
                 val placeholders = mapOf("%PLAYER%" to targetPlayerName)
                 sendMessage.accept(config.language.playerNotFound, placeholders)
-                return@onSuccess
-            }
-            for (onlineTime in response) {
-                val sessionTime = onlineTimePlayers.get()[onlineTime.uuid]?.getSessionOnlineTime() ?: 0
+            } else {
+                for (onlineTime in response) {
+                    val sessionTime = onlineTimePlayers.get()[onlineTime.uuid]?.getSessionOnlineTime() ?: 0
 
-                val total = Duration.ofMillis(onlineTime.time + sessionTime)
+                    val total = Duration.ofMillis(onlineTime.time + sessionTime)
 
-                val placeholders = mapOf(
-                    "%PLAYER%" to onlineTime.name,
-                    "%HOURS%" to total.toHours() % 24,
-                    "%MINUTES%" to total.toMinutes() % 60
-                )
-                sendMessage.accept(config.language.onlineTime, placeholders)
+                    val placeholders = mapOf(//@formatter:off
+                        "%PLAYER%"  to onlineTime.name,
+                        "%HOURS%"   to total.toHours() % 24,
+                        "%MINUTES%" to total.toMinutes() % 60
+                    )//@formatter:on
+                    sendMessage.accept(config.language.onlineTime, placeholders)
+                }
             }
         }, onError = { e ->
             sendMessage.accept(config.language.error, emptyMap())
@@ -45,9 +45,9 @@ class OnlineTimeCommandBase(
         })
     }
 
-     fun sendTopOnlineTimes(page: Int, sendMessage: BiConsumer<String, Map<String, Any>?>) {
+    fun sendTopOnlineTimes(page: Int, sendMessage: BiConsumer<String, Map<String, Any>?>) {
         val topOnlineTimePageLimit = config.plugin.topOnlineTimePageLimit
-         asyncTask(doTask = {
+        asyncTask(doTask = {
             database.getTopOnlineTimes(page, topOnlineTimePageLimit)
 
         }, onSuccess = { response ->
@@ -60,12 +60,12 @@ class OnlineTimeCommandBase(
 
                 val total = Duration.ofMillis(onlineTime.time + sessionTime)
 
-                val placeholders = mapOf(
-                    "%RANK%" to rank,
-                    "%PLAYER%" to onlineTime.name,
-                    "%HOURS%" to total.toHours() % 24,
+                val placeholders = mapOf(//@formatter:off
+                    "%RANK%"    to rank,
+                    "%PLAYER%"  to onlineTime.name,
+                    "%HOURS%"   to total.toHours() % 24,
                     "%MINUTES%" to total.toMinutes() % 60
-                )
+                )//@formatter:on
                 sendMessage.accept(config.language.topTime, placeholders)
                 rank++
             }

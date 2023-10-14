@@ -7,7 +7,7 @@ import java.util.UUID
 
 object Utils {
 
-    fun onlineTimePluginMessageArr(otp: OnlineTimePlayer, uuid: UUID): ByteArray? {
+    fun createPluginMessageArr(otp: OnlineTimePlayer, uuid: UUID): ByteArray? {
         val savedOnlineTime = otp.savedOnlineTime ?: return null
         val totalOnlineTime = savedOnlineTime + otp.getSessionOnlineTime()
 
