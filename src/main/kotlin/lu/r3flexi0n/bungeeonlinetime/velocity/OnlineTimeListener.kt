@@ -3,7 +3,7 @@ package lu.r3flexi0n.bungeeonlinetime.velocity
 import com.velocitypowered.api.event.Subscribe
 import com.velocitypowered.api.event.connection.DisconnectEvent
 import com.velocitypowered.api.event.connection.PostLoginEvent
-import com.velocitypowered.api.event.player.ServerConnectedEvent
+import com.velocitypowered.api.event.player.ServerPostConnectEvent
 import lu.r3flexi0n.bungeeonlinetime.common.objects.OnlineTimePlayer
 import lu.r3flexi0n.bungeeonlinetime.common.utils.Utils
 import lu.r3flexi0n.bungeeonlinetime.common.utils.asyncTask
@@ -23,18 +23,11 @@ class OnlineTimeListener(private val plugin: VelocityOnlineTimePlugin) {
         val onlineTimePlayer = OnlineTimePlayer()
         plugin.onlineTimePlayers[uuid] = onlineTimePlayer
         if (usePlaceholderApi) {
-            val name = player.username
             asyncTask(
                 doTask = { plugin.database.getOnlineTime(uuid.toString()) },
-                onSuccess = { onlineTimes ->
-
-                    val savedOnlineTime = if (onlineTimes.isNotEmpty()) onlineTimes[0].time else 0L
-                    onlineTimePlayer.setSavedOnlineTime(savedOnlineTime)
-                    val arr = Utils.createPluginMessageArr(onlineTimePlayer, player.uniqueId)
-                    player.currentServer.get().sendPluginMessage(plugin.pluginMessageChannel, arr)
-                },
+                onSuccess = { onlineTimePlayer.setSavedOnlineTime(if (it.isNotEmpty()) it[0].time else 0L) },
                 onError = { ex ->
-                    logger.error("Error while loading online time for player $name.")
+                    logger.error("Error while loading online time for player ${player.username}.")
                     ex.printStackTrace()
                 }
             )
@@ -42,21 +35,19 @@ class OnlineTimeListener(private val plugin: VelocityOnlineTimePlugin) {
     }
 
     @Subscribe
-    fun onSwitch(e: ServerConnectedEvent) {
+    @Suppress("UnstableApiUsage")
+    fun onSwitch(e: ServerPostConnectEvent) {
         val player = e.player
         val onlineTimePlayer = plugin.onlineTimePlayers[player.uniqueId] ?: return
-        val server = e.server.serverInfo
-        if (disabledServers.contains(server.name)) {
+        val server = player.currentServer.get()
+        if (disabledServers.contains(server.serverInfo.name)) {
             onlineTimePlayer.joinDisabledServer()
         } else {
             onlineTimePlayer.leaveDisabledServer()
         }
-        if (usePlaceholderApi) {
-            val savedOnlineTime = onlineTimePlayer.savedOnlineTime
-            if (savedOnlineTime != null) {
-                val arr = Utils.createPluginMessageArr(onlineTimePlayer, player.uniqueId)
-                player.currentServer.get().sendPluginMessage(plugin.pluginMessageChannel, arr)
-            }
+        if (usePlaceholderApi && onlineTimePlayer.savedOnlineTime != null) {
+            val arr = Utils.createPluginMessageArr(onlineTimePlayer, player.uniqueId)
+            server.sendPluginMessage(plugin.pluginMessageChannel, arr)
         }
     }
 

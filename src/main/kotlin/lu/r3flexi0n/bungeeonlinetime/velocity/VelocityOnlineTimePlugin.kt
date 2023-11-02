@@ -21,7 +21,7 @@ import java.nio.file.Path
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 
-@Plugin(id = "onlinetime", name = "OnlineTime", version = BuildInfo.VERSION)
+@Plugin(id = "onlinetime", name = "OnlineTime", version = BuildInfo.VERSION, authors = ["itsTyrion", "r3flexi0n"])
 class VelocityOnlineTimePlugin @Inject constructor(
     val proxy: ProxyServer,
     val logger: Logger,
@@ -80,7 +80,7 @@ class VelocityOnlineTimePlugin @Inject constructor(
                         val onlineTimePlayer = onlineTimePlayers[player.uniqueId] ?: continue
                         val arr = Utils.createPluginMessageArr(onlineTimePlayer, player.uniqueId)
                         if (arr != null)
-                            player.currentServer.ifPresent {it.sendPluginMessage(pluginMessageChannel, arr) }
+                            player.currentServer.ifPresent { it.sendPluginMessage(pluginMessageChannel, arr) }
                     }
                 }.repeat(timerInterval.toLong(), TimeUnit.MINUTES).schedule()
             }

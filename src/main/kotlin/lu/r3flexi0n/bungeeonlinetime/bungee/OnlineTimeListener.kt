@@ -26,13 +26,7 @@ class OnlineTimeListener(private val plugin: BungeeOnlineTimePlugin) : Listener 
         if (usePlaceholderApi)
             asyncTask(
                 doTask = { plugin.database.getOnlineTime(uuid.toString()) },
-                onSuccess = { onlineTimes ->
-
-                    val savedOnlineTime = if (onlineTimes.isNotEmpty()) onlineTimes[0].time else 0L
-                    onlineTimePlayer.setSavedOnlineTime(savedOnlineTime)
-                    val arr = Utils.createPluginMessageArr(onlineTimePlayer, player.uniqueId)
-                    player.server.sendData(plugin.pluginMessageChannel, arr)
-                },
+                onSuccess = { onlineTimePlayer.setSavedOnlineTime(if (it.isNotEmpty()) it[0].time else 0L) },
                 onError = { logger.error("Error while loading online time for player ${player.name}.", it) }
             )
     }
@@ -41,14 +35,13 @@ class OnlineTimeListener(private val plugin: BungeeOnlineTimePlugin) : Listener 
     fun onSwitch(e: ServerSwitchEvent) {
         val player = e.player
         val onlineTimePlayer = plugin.onlineTimePlayers[player.uniqueId] ?: return
-        val server = player.server.info
-        if (disabledServers.contains(server.name)) {
+        val server = player.server
+        if (disabledServers.contains(server.info.name)) {
             onlineTimePlayer.joinDisabledServer()
         } else {
             onlineTimePlayer.leaveDisabledServer()
         }
         if (usePlaceholderApi && onlineTimePlayer.savedOnlineTime != null) {
-
             val arr = Utils.createPluginMessageArr(onlineTimePlayer, player.uniqueId)
             server.sendData(plugin.pluginMessageChannel, arr)
         }
