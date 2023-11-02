@@ -1,12 +1,12 @@
 package lu.r3flexi0n.bungeeonlinetime.common.config
 
 class Config {
-    @JvmField
-    var language = Language()
-    @JvmField
-    var plugin = Plugin()
-    @JvmField
-    var mySQL = MySQL()
+    @JvmField var language = Language()
+
+    @JvmField var plugin = Plugin()
+
+    @JvmField var mySQL = MySQL()
+
     @Suppress("PropertyName", "SpellCheckingInspection") // mb lemme use quotes in a variable name real quick
     var version_dont_touch = 1
 
@@ -18,7 +18,7 @@ class Config {
              &7/onlinetime top [page]
              &7/onlinetime reset <player>
              &7/onlinetime resetall
-             """.trimIndent()
+             """.trimIndent() // @formatter:off
         var resetAll       = "&7The database has been reset."
         var playerNotFound = "&7Player '&6%PLAYER%&7' was not found."
         var topTimeAbove   = "&7====== &6Top 10 &7======"
@@ -29,24 +29,24 @@ class Config {
         var error          = "&7An error occurred."
         var onlyPlayer     = "&7This command can only be executed by players."
         var resetPlayer    = "&6%PLAYER%&7's onlinetime has been reset."
-    }
+    } // @formatter:on
 
     class Plugin {
         var commandAliases = arrayOf("onlinetime", "ot")
-        var disabledServers: List<String> = mutableListOf("lobby-1", "lobby-2")
+        var disabledServers = mutableListOf("lobby-1", "lobby-2")
         var usePlaceholderApi = false
         var topOnlineTimePageLimit = 10
         var placeholderRefreshTimer = 1
     }
 
-    class MySQL {
-        var enabled = false
-        var host = "localhost"
-        var port = 3306
+    class MySQL { // @formatter:off
+        var enabled  = false
+        var host     = "localhost"
+        var port     = 3306
         var database = "minecraft"
         var username = "onlinetime"
         var password = "abc123"
-    }
+    } // @formatter:on
 
     companion object {
         const val CURRENT_VERSION = 1

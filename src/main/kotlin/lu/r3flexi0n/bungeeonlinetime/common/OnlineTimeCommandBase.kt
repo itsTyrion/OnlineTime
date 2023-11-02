@@ -6,7 +6,7 @@ import lu.r3flexi0n.bungeeonlinetime.common.objects.OnlineTimePlayer
 import lu.r3flexi0n.bungeeonlinetime.common.utils.asyncTask
 import org.slf4j.Logger
 import java.time.Duration
-import java.util.*
+import java.util.UUID
 import java.util.function.BiConsumer
 import java.util.function.Supplier
 

@@ -56,7 +56,7 @@ class OnlineTimeCommand(private val plugin: VelocityOnlineTimePlugin) : SimpleCo
                 val name = args[1]
                 base.sendReset(name) { msg, placeholders -> sendMessage(sender, msg, placeholders) }
                 plugin.proxy.getPlayer(name)
-                        .ifPresent { plugin.onlineTimePlayers[it.uniqueId]?.setSavedOnlineTime(0L) }
+                    .ifPresent { plugin.onlineTimePlayers[it.uniqueId]?.setSavedOnlineTime(0L) }
             }
 
         } else if (args.size == 1 && arg0 == "resetall") {
