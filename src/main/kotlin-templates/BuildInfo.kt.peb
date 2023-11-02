@@ -1,0 +1,3 @@
+object BuildInfo {
+    const val VERSION: String = "{# @pebvariable name="version" type="java.lang.String" #}{{ version }}"
+}

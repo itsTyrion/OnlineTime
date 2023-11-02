@@ -1,0 +1,97 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+
+plugins {
+    id "org.jetbrains.kotlin.jvm" version "1.9.10"
+    id "org.jetbrains.kotlin.kapt" version "1.9.10"
+    id "com.github.johnrengelman.shadow" version "8.1.1"
+    id "net.kyori.blossom" version "2.1.0"
+}
+
+configurations {
+    bungeecord
+}
+
+repositories {
+    mavenCentral()
+    maven {
+        name "Sonatype"
+        url uri("https://oss.sonatype.org/content/repositories/snapshots")
+    }
+    maven {
+        name "PaperMC"
+        url uri("https://repo.papermc.io/repository/maven-public/")
+    }
+}
+
+dependencies {
+    implementation "org.xerial:sqlite-jdbc:3.40.1.0"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:1.9.10"
+    implementation "org.yaml:snakeyaml:2.0"
+    bungeecord "org.slf4j:slf4j-api:2.0.5"
+    bungeecord "org.slf4j:slf4j-simple:2.0.5"
+    compileOnly "org.jetbrains.kotlin:kotlin-stdlib:1.9.10"
+    compileOnly "net.md-5:bungeecord-api:1.20-R0.1-SNAPSHOT"
+    compileOnly "com.velocitypowered:velocity-api:3.2.0-SNAPSHOT"
+    kapt "com.velocitypowered:velocity-api:3.2.0-SNAPSHOT"
+}
+
+group = "lu.r3flexi0n"
+version = "8.4.0"
+description = "BungeeOnlineTime"
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = "UTF-8"
+    options.release = 17
+    options.deprecation true
+}
+
+sourceSets {
+    main.blossom.kotlinSources {
+        property("version", version)
+    }
+}
+
+shadowJar {
+    minimize() { exclude(dependency("org.xerial:sqlite-jdbc")) }
+    archiveClassifier = ""
+
+    relocate "org.yaml", "de.itsTyrion.shaded.snakeyaml"
+
+    def sqlite = "org/sqlite/native"
+    exclude "$sqlite/*/ppc64/**", "$sqlite/*/arm*/**", "$sqlite/*/x86/**" // uncommon architectures for MC servers
+    exclude "$sqlite/Linux-*/**", "$sqlite/Mac/**", "$sqlite/FreeBSD/**" // and uncommon OS' for MC servers
+}
+
+tasks.register("noSQLite", ShadowJar) {
+    from sourceSets.main.output
+    configurations = [project.configurations.runtimeClasspath]
+    archiveClassifier = "noSQLite"
+    minimize()
+
+    relocate "org.yaml", "de.itsTyrion.shaded.snakeyaml"
+
+    dependencies { exclude dependency("org.xerial:sqlite-jdbc") }
+}
+
+tasks.register("bungeecord", ShadowJar) {
+    from sourceSets.main.output
+    configurations = [project.configurations.runtimeClasspath, project.configurations.bungeecord]
+    archiveClassifier = "bungeecord"
+    minimize() { exclude(dependency("org.xerial:sqlite-jdbc")) }
+
+    relocate "kotlin", "de.itsTyrion.shaded.kotlin"
+    relocate "org.yaml", "de.itsTyrion.shaded.snakeyaml"
+    relocate "org.slf4j", "de.itsTyrion.shaded.slf4j"
+
+    def sqlite = "org/sqlite/native"
+    exclude "$sqlite/*/ppc64/**", "$sqlite/*/arm*/**", "$sqlite/*/x86/**" // uncommon architectures for MC servers
+    exclude "$sqlite/Linux-*/**", "$sqlite/Mac/**", "$sqlite/FreeBSD/**" // and uncommon OS' for MC servers
+}
+
+gradle.beforeProject {
+    generateTemplates
+}
+
+build {
+    dependsOn([shadowJar, noSQLite, bungeecord])
+}

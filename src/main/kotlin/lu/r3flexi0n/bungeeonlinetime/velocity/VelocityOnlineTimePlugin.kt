@@ -21,7 +21,7 @@ import java.nio.file.Path
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 
-@Plugin(id = "onlinetime", name = "OnlineTime")
+@Plugin(id = "onlinetime", name = "OnlineTime", version = BuildInfo.VERSION)
 class VelocityOnlineTimePlugin @Inject constructor(
     val proxy: ProxyServer,
     val logger: Logger,
@@ -34,11 +34,11 @@ class VelocityOnlineTimePlugin @Inject constructor(
 
     val onlineTimePlayers = HashMap<UUID, OnlineTimePlayer>()
 
-    val pluginMessageChannel = MinecraftChannelIdentifier.from("bungeeonlinetime:get")
+    val pluginMessageChannel = MinecraftChannelIdentifier.from("bungeeonlinetime:get")!!
 
 
     @Subscribe
-    fun onEnable(e: ProxyInitializeEvent) {
+    fun onEnable(@Suppress("unused_parameter") e: ProxyInitializeEvent) {
         try {
             config = ConfigLoader.load(dataFolder, logger)
         } catch (ex: IOException) {
