@@ -55,22 +55,12 @@ shadowJar {
     minimize() { exclude(dependency("org.xerial:sqlite-jdbc")) }
     archiveClassifier = ""
 
+    relocate "kotlin", "de.itsTyrion.shaded.kotlin"
     relocate "org.yaml", "de.itsTyrion.shaded.snakeyaml"
 
     def sqlite = "org/sqlite/native"
     exclude "$sqlite/*/ppc64/**", "$sqlite/*/arm*/**", "$sqlite/*/x86/**" // uncommon architectures for MC servers
     exclude "$sqlite/Linux-*/**", "$sqlite/Mac/**", "$sqlite/FreeBSD/**" // and uncommon OS' for MC servers
-}
-
-tasks.register("noSQLite", ShadowJar) {
-    from sourceSets.main.output
-    configurations = [project.configurations.runtimeClasspath]
-    archiveClassifier = "noSQLite"
-    minimize()
-
-    relocate "org.yaml", "de.itsTyrion.shaded.snakeyaml"
-
-    dependencies { exclude dependency("org.xerial:sqlite-jdbc") }
 }
 
 tasks.register("bungeecord", ShadowJar) {
@@ -88,10 +78,21 @@ tasks.register("bungeecord", ShadowJar) {
     exclude "$sqlite/Linux-*/**", "$sqlite/Mac/**", "$sqlite/FreeBSD/**" // and uncommon OS' for MC servers
 }
 
+tasks.register("fat", ShadowJar) {
+    from sourceSets.main.output
+    configurations = [project.configurations.runtimeClasspath]
+    archiveClassifier = "fat"
+    minimize() { exclude(dependency("org.xerial:sqlite-jdbc")) }
+
+    relocate "kotlin", "de.itsTyrion.shaded.kotlin"
+    relocate "org.yaml", "de.itsTyrion.shaded.snakeyaml"
+    relocate "org.slf4j", "de.itsTyrion.shaded.slf4j"
+}
+
 gradle.beforeProject {
     generateTemplates
 }
 
 build {
-    dependsOn([shadowJar, noSQLite, bungeecord])
+    dependsOn([shadowJar, bungeecord, fat])
 }
