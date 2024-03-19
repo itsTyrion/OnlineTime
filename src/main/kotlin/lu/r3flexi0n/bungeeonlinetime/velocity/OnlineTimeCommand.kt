@@ -69,13 +69,13 @@ class OnlineTimeCommand(private val plugin: VelocityOnlineTimePlugin) : SimpleCo
         }
     }
 
-    private fun sendMessage(sender: CommandSource, messageId: String, placeholders: Map<String, Any>? = emptyMap()) {
+    private fun sendMessage(sender: CommandSource, messageId: String, placeholders: Map<String, Any>? = null) {
         var message = messageId
         if (placeholders != null) {
             for ((key, value) in placeholders) {
                 message = message.replace(key, value.toString())
             }
         }
-        sender.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize(messageId))
+        sender.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize(message))
     }
 }
