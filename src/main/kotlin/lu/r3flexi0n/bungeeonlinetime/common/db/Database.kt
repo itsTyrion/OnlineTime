@@ -4,6 +4,7 @@ import lu.r3flexi0n.bungeeonlinetime.common.objects.OnlineTime
 import java.sql.*
 import java.util.*
 
+@Suppress("SqlNoDataSourceInspection")
 abstract class Database(val dbName: String, private val dbClass: Array<String>, private val dbURL: String) {
     var dbProperties = Properties(3)
 
@@ -33,6 +34,11 @@ abstract class Database(val dbName: String, private val dbClass: Array<String>, 
         val sql =
             "CREATE TABLE IF NOT EXISTS BungeeOnlineTime (uuid VARCHAR(36) UNIQUE, name VARCHAR(16), time BIGINT);"
         con.createStatement().use { it.executeUpdate(sql) }
+    }
+
+    fun close() {
+        if (::con.isInitialized)
+            con.close()
     }
 
     @Throws(SQLException::class)

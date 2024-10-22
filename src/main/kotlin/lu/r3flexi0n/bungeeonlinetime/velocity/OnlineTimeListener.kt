@@ -5,7 +5,7 @@ import com.velocitypowered.api.event.connection.DisconnectEvent
 import com.velocitypowered.api.event.connection.PostLoginEvent
 import com.velocitypowered.api.event.player.ServerPostConnectEvent
 import lu.r3flexi0n.bungeeonlinetime.common.objects.OnlineTimePlayer
-import lu.r3flexi0n.bungeeonlinetime.common.utils.Utils
+import lu.r3flexi0n.bungeeonlinetime.common.utils.Messaging
 import lu.r3flexi0n.bungeeonlinetime.common.utils.asyncTask
 
 class OnlineTimeListener(private val plugin: VelocityOnlineTimePlugin) {
@@ -45,9 +45,13 @@ class OnlineTimeListener(private val plugin: VelocityOnlineTimePlugin) {
         } else {
             onlineTimePlayer.leaveDisabledServer()
         }
-        if (usePlaceholderApi && onlineTimePlayer.savedOnlineTime != null) {
-            val arr = Utils.createPluginMessageArr(onlineTimePlayer, player.uniqueId)
-            server.sendPluginMessage(plugin.pluginMessageChannel, arr)
+        if (usePlaceholderApi) {
+            if (onlineTimePlayer.savedOnlineTime != null) {
+                val arr = Messaging.createMainArr(onlineTimePlayer, player.uniqueId)!!
+                server.sendPluginMessage(plugin.pluginMessageChannelMain, arr)
+            }
+            val arr = Messaging.createTopArr(plugin)
+            server.sendPluginMessage(plugin.pluginMessageChannelTop, arr)
         }
     }
 

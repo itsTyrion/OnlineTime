@@ -9,12 +9,11 @@ import kotlin.math.max
 
 class OnlineTimeCommand(private val plugin: VelocityOnlineTimePlugin) : SimpleCommand {
 
-    private val config = plugin.config
-    private val base = OnlineTimeCommandBase(plugin.logger, plugin.config, plugin.database) { plugin.onlineTimePlayers }
+    private val base = OnlineTimeCommandBase(plugin)
 
     private fun checkPermission(sender: CommandSource, permission: String): Boolean {
         if (!sender.hasPermission(permission)) {
-            sendMessage(sender, config.language.noPermission)
+            send(sender, plugin.config.language.noPermission)
             return false
         }
         return true
@@ -23,7 +22,7 @@ class OnlineTimeCommand(private val plugin: VelocityOnlineTimePlugin) : SimpleCo
     override fun execute(invocation: SimpleCommand.Invocation) {
         val sender = invocation.source()
         if (sender !is Player) {
-            sendMessage(sender, config.language.onlyPlayer)
+            send(sender, plugin.config.language.onlyPlayer)
             return
         }
         val args = invocation.arguments()
@@ -32,29 +31,28 @@ class OnlineTimeCommand(private val plugin: VelocityOnlineTimePlugin) : SimpleCo
 
         if (size == 0) {
             if (checkPermission(sender, "onlinetime.own")) {
-                val name = sender.username
-                base.sendOnlineTime(name) { msg, placeholders -> sendMessage(sender, msg, placeholders) }
+                base.sendOnlineTime(sender.username) { msg, placeholders -> send(sender, msg, placeholders) }
             }
 
         } else if (size == 2 && arg0 == "get") {
 
             if (checkPermission(sender, "onlinetime.others")) {
                 val name = args[1]
-                base.sendOnlineTime(name) { msg, placeholders -> sendMessage(sender, msg, placeholders) }
+                base.sendOnlineTime(name) { msg, placeholders -> send(sender, msg, placeholders) }
             }
 
         } else if ((size == 1 || size == 2) && arg0 == "top") {
 
             if (checkPermission(sender, "onlinetime.top")) {
-                val page = max(args[1].toIntOrNull() ?: 1, 1)
-                base.sendTopOnlineTimes(page) { msg, placeholders -> sendMessage(sender, msg, placeholders) }
+                val page = if (size == 1) 1 else max(1, args[1].toIntOrNull() ?: 1)
+                base.sendTopOnlineTimes(page) { msg, placeholders -> send(sender, msg, placeholders) }
             }
 
         } else if (args.size == 2 && arg0 == "reset") {
 
             if (checkPermission(sender, "onlinetime.reset")) {
                 val name = args[1]
-                base.sendReset(name) { msg, placeholders -> sendMessage(sender, msg, placeholders) }
+                base.sendReset(name) { msg, placeholders -> send(sender, msg, placeholders) }
                 plugin.proxy.getPlayer(name)
                     .ifPresent { plugin.onlineTimePlayers[it.uniqueId]?.setSavedOnlineTime(0L) }
             }
@@ -62,14 +60,21 @@ class OnlineTimeCommand(private val plugin: VelocityOnlineTimePlugin) : SimpleCo
         } else if (args.size == 1 && arg0 == "resetall") {
 
             if (checkPermission(sender, "onlinetime.resetall"))
-                base.sendResetAll { msg, placeholders -> sendMessage(sender, msg, placeholders) }
+                base.sendResetAll { msg, placeholders -> send(sender, msg, placeholders) }
 
-        } else {
-            sendMessage(sender, config.language.help)
+        } else if (args.size == 1 && arg0 == "reload") {
+
+            if (checkPermission(sender, "onlinetime.reload")) {
+                plugin.reloadConfig()
+                send(sender, plugin.config.language.configReloaded)
+            }
+
+        }  else {
+            send(sender, plugin.config.language.help)
         }
     }
 
-    private fun sendMessage(sender: CommandSource, messageId: String, placeholders: Map<String, Any>? = null) {
+    private fun send(sender: CommandSource, messageId: String, placeholders: Map<String, Any>? = null) {
         var message = messageId
         if (placeholders != null) {
             for ((key, value) in placeholders) {

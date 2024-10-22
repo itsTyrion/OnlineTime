@@ -7,10 +7,10 @@ class Config {
 
     @JvmField var mySQL = MySQL()
 
-    @Suppress("PropertyName", "SpellCheckingInspection") // mb lemme use quotes in a variable name real quick
-    var version_dont_touch = 1
+    @Suppress("PropertyName")
+    var version_dont_touch = CURRENT_VERSION
 
-    class Language {
+    class Language { // @formatter:on
         var help = """
              &7Usage:
              &7/onlinetime
@@ -19,16 +19,17 @@ class Config {
              &7/onlinetime reset <player>
              &7/onlinetime resetall
              """.trimIndent() // @formatter:off
-        var resetAll       = "&7The database has been reset."
-        var playerNotFound = "&7Player '&6%PLAYER%&7' was not found."
+        var resetAll       = "&bThe database has been reset."
+        var playerNotFound = "&cPlayer '&6%PLAYER%&c' was not found."
         var topTimeAbove   = "&7====== &6Top 10 &7======"
         var onlineTime     = "&6%PLAYER%&7's onlinetime: &6%HOURS%&7h &6%MINUTES%&7min"
         var topTimeBelow   = "&7====== &6Page %PAGE% &7======"
-        var noPermission   = "&7You do not have access to this command."
+        var noPermission   = "&cYou do not have access to this command."
         var topTime        = "&7#%RANK% &6%PLAYER%&7: &6%HOURS%&7h &6%MINUTES%&7min"
-        var error          = "&7An error occurred."
-        var onlyPlayer     = "&7This command can only be executed by players."
-        var resetPlayer    = "&6%PLAYER%&7's onlinetime has been reset."
+        var error          = "&cAn error occurred."
+        var onlyPlayer     = "&cThis command can only be executed by players."
+        var resetPlayer    = "&6%PLAYER%&b's onlinetime has been reset."
+        var configReloaded = "&bThe config has been reloaded. A restart is still recommended."
     } // @formatter:on
 
     class Plugin {
@@ -36,7 +37,9 @@ class Config {
         var disabledServers = mutableListOf("lobby-1", "lobby-2")
         var usePlaceholderApi = false
         var topOnlineTimePageLimit = 10
-        var placeholderRefreshTimer = 1
+        @Deprecated("Replaced. Minutes -> Seconds", ReplaceWith("placeholderRefreshSeconds"))
+        var placeholderRefreshTimer = Int.MIN_VALUE
+        var placeholderRefreshSeconds = 60
     }
 
     class MySQL { // @formatter:off
@@ -49,6 +52,6 @@ class Config {
     } // @formatter:on
 
     companion object {
-        const val CURRENT_VERSION = 1
+        const val CURRENT_VERSION = 2
     }
 }

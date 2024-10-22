@@ -1,8 +1,8 @@
 package lu.r3flexi0n.bungeeonlinetime.common.db
 
-import java.io.File
+import java.nio.file.Path
 
-class SQLiteDatabase(file: File) : Database("SQLite", arrayOf("org.sqlite.JDBC"), "jdbc:sqlite:" + file.path) {
+class SQLiteDatabase(path: Path) : Database("SQLite", arrayOf("org.sqlite.JDBC"), "jdbc:sqlite:$path") {
 
     override fun createIndex() {
         con.createStatement().use { st ->

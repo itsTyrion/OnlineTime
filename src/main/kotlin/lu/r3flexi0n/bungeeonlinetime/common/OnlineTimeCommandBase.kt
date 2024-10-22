@@ -1,25 +1,15 @@
 package lu.r3flexi0n.bungeeonlinetime.common
 
-import lu.r3flexi0n.bungeeonlinetime.common.config.Config
-import lu.r3flexi0n.bungeeonlinetime.common.db.Database
-import lu.r3flexi0n.bungeeonlinetime.common.objects.OnlineTimePlayer
 import lu.r3flexi0n.bungeeonlinetime.common.utils.asyncTask
-import org.slf4j.Logger
 import java.time.Duration
-import java.util.UUID
 import java.util.function.BiConsumer
-import java.util.function.Supplier
 
-class OnlineTimeCommandBase(
-    private val logger: Logger,
-    private val config: Config,
-    private val database: Database,
-    private val onlineTimePlayers: Supplier<Map<UUID, OnlineTimePlayer>>
-) {
+class OnlineTimeCommandBase(private val plugin: OnlineTimePlugin) {
+    private val config get() = plugin.config
 
     fun sendOnlineTime(targetPlayerName: String, sendMessage: BiConsumer<String, Map<String, Any>?>) {
         asyncTask(doTask = {
-            database.getOnlineTime(targetPlayerName)
+            plugin.database.getOnlineTime(targetPlayerName)
 
         }, onSuccess = { response ->
             if (response.isEmpty()) {
@@ -27,28 +17,28 @@ class OnlineTimeCommandBase(
                 sendMessage.accept(config.language.playerNotFound, placeholders)
             } else {
                 for (onlineTime in response) {
-                    val sessionTime = onlineTimePlayers.get()[onlineTime.uuid]?.getSessionOnlineTime() ?: 0
+                    val sessionTime = plugin.onlineTimePlayers[onlineTime.uuid]?.getSessionOnlineTime() ?: 0
 
                     val total = Duration.ofMillis(onlineTime.time + sessionTime)
 
                     val placeholders = mapOf(//@formatter:off
                         "%PLAYER%"  to onlineTime.name,
-                        "%HOURS%"   to total.toHours() % 24,
-                        "%MINUTES%" to total.toMinutes() % 60
+                        "%HOURS%"   to total.toHours(),
+                        "%MINUTES%" to total.toMinutesPart()
                     )//@formatter:on
                     sendMessage.accept(config.language.onlineTime, placeholders)
                 }
             }
         }, onError = { e ->
             sendMessage.accept(config.language.error, emptyMap())
-            logger.error("Error while loading online time for player $targetPlayerName.", e)
+            plugin.logger.error("Error while loading online time for player $targetPlayerName.", e)
         })
     }
 
     fun sendTopOnlineTimes(page: Int, sendMessage: BiConsumer<String, Map<String, Any>?>) {
         val topOnlineTimePageLimit = config.plugin.topOnlineTimePageLimit
         asyncTask(doTask = {
-            database.getTopOnlineTimes(page, topOnlineTimePageLimit)
+            plugin.database.getTopOnlineTimes(page, topOnlineTimePageLimit)
 
         }, onSuccess = { response ->
             var rank = (page - 1) * topOnlineTimePageLimit + 1
@@ -56,15 +46,15 @@ class OnlineTimeCommandBase(
             sendMessage.accept(config.language.topTimeAbove, headerPlaceholders)
 
             for (onlineTime in response) {
-                val sessionTime = onlineTimePlayers.get()[onlineTime.uuid]?.getSessionOnlineTime() ?: 0
+                val sessionTime = plugin.onlineTimePlayers[onlineTime.uuid]?.getSessionOnlineTime() ?: 0
 
                 val total = Duration.ofMillis(onlineTime.time + sessionTime)
 
                 val placeholders = mapOf(//@formatter:off
                     "%RANK%"    to rank,
                     "%PLAYER%"  to onlineTime.name,
-                    "%HOURS%"   to total.toHours() % 24,
-                    "%MINUTES%" to total.toMinutes() % 60
+                    "%HOURS%"   to total.toHours(),
+                    "%MINUTES%" to total.toMinutesPart()
                 )//@formatter:on
                 sendMessage.accept(config.language.topTime, placeholders)
                 rank++
@@ -72,30 +62,30 @@ class OnlineTimeCommandBase(
             sendMessage.accept(config.language.topTimeBelow, headerPlaceholders)
         }, onError = { e ->
             sendMessage.accept(config.language.error, null)
-            logger.error("Error while loading top online times.", e)
+            plugin.logger.error("Error while loading top online times.", e)
         })
     }
 
     fun sendReset(targetPlayerName: String, sendMessage: BiConsumer<String, Map<String, Any>?>) {
         asyncTask(doTask = {
-            database.resetOnlineTime(targetPlayerName)
+            plugin.database.resetOnlineTime(targetPlayerName)
         }, onSuccess = {
             sendMessage.accept(config.language.resetPlayer, mapOf("%PLAYER%" to targetPlayerName))
         }, onError = { e ->
             sendMessage.accept(config.language.error, emptyMap())
-            logger.error("Error while resetting online time for player $targetPlayerName.", e)
+            plugin.logger.error("Error while resetting online time for player $targetPlayerName.", e)
         })
     }
 
     fun sendResetAll(sendMessage: BiConsumer<String, Map<String, Any>?>) {
         asyncTask(doTask = {
-            database.resetAllOnlineTimes()
-            onlineTimePlayers.get().forEach { (_, value) -> value.setSavedOnlineTime(0L) }
+            plugin.database.resetAllOnlineTimes()
+            plugin.onlineTimePlayers.forEach { (_, value) -> value.setSavedOnlineTime(0L) }
         }, onSuccess = {
             sendMessage.accept(config.language.resetAll, emptyMap())
         }, onError = { e ->
             sendMessage.accept(config.language.error, emptyMap())
-            logger.error("Error while resetting online time database.", e)
+            plugin.logger.error("Error while resetting online time database.", e)
         })
     }
 }

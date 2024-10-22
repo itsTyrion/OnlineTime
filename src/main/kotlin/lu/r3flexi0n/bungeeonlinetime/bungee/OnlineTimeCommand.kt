@@ -6,15 +6,15 @@ import net.md_5.bungee.api.CommandSender
 import net.md_5.bungee.api.chat.TextComponent
 import net.md_5.bungee.api.connection.ProxiedPlayer
 import net.md_5.bungee.api.plugin.Command
+import kotlin.math.max
 
 class OnlineTimeCommand(private val plugin: BungeeOnlineTimePlugin, cmd: String, aliases: Array<String>) :
     Command(cmd, null, *aliases) {
-    private val config = plugin.config
-    private val base = OnlineTimeCommandBase(plugin.logger, plugin.config, plugin.database) { plugin.onlineTimePlayers }
+    private val base = OnlineTimeCommandBase(plugin)
 
     private fun checkPermission(sender: CommandSender, permission: String): Boolean {
         if (!sender.hasPermission(permission)) {
-            send(sender, config.language.noPermission)
+            send(sender, plugin.config.language.noPermission)
             return false
         }
         return true
@@ -22,7 +22,7 @@ class OnlineTimeCommand(private val plugin: BungeeOnlineTimePlugin, cmd: String,
 
     override fun execute(sender: CommandSender, args: Array<String>) {
         if (sender !is ProxiedPlayer) {
-            send(sender, config.language.onlyPlayer)
+            send(sender, plugin.config.language.onlyPlayer)
             return
         }
         val arg0 = if (args.isNotEmpty()) args[0].lowercase() else ""
@@ -43,7 +43,7 @@ class OnlineTimeCommand(private val plugin: BungeeOnlineTimePlugin, cmd: String,
         } else if ((size == 1 || size == 2) && arg0 == "top") {
 
             if (checkPermission(sender, "onlinetime.top")) {
-                val page = (args[1].toIntOrNull() ?: 1).coerceAtLeast(1)
+                val page = if (size == 1) 1 else max(1, args[1].toIntOrNull() ?: 1)
                 base.sendTopOnlineTimes(page) { msg, placeholders -> send(sender, msg, placeholders) }
             }
 
@@ -62,8 +62,15 @@ class OnlineTimeCommand(private val plugin: BungeeOnlineTimePlugin, cmd: String,
             if (checkPermission(sender, "onlinetime.resetall"))
                 base.sendResetAll { msg, placeholders -> send(sender, msg, placeholders) }
 
+        } else if (args.size == 1 && arg0 == "reload") {
+
+            if (checkPermission(sender, "onlinetime.reload")) {
+                plugin.reloadConfig()
+                send(sender, plugin.config.language.configReloaded)
+            }
+
         } else {
-            send(sender, config.language.help)
+            send(sender, plugin.config.language.help)
         }
     }
 
@@ -75,6 +82,6 @@ class OnlineTimeCommand(private val plugin: BungeeOnlineTimePlugin, cmd: String,
                 message = message.replace(key, value.toString())
             }
         }
-        sender.sendMessage(*TextComponent.fromLegacyText(ChatColor.translateAlternateColorCodes('&', message)))
+        sender.sendMessage(TextComponent.fromLegacy(ChatColor.translateAlternateColorCodes('&', message)))
     }
 }

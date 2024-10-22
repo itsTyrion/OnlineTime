@@ -1,7 +1,7 @@
 package lu.r3flexi0n.bungeeonlinetime.bungee
 
 import lu.r3flexi0n.bungeeonlinetime.common.objects.OnlineTimePlayer
-import lu.r3flexi0n.bungeeonlinetime.common.utils.Utils
+import lu.r3flexi0n.bungeeonlinetime.common.utils.Messaging
 import lu.r3flexi0n.bungeeonlinetime.common.utils.asyncTask
 import net.md_5.bungee.api.event.PlayerDisconnectEvent
 import net.md_5.bungee.api.event.PostLoginEvent
@@ -41,9 +41,13 @@ class OnlineTimeListener(private val plugin: BungeeOnlineTimePlugin) : Listener 
         } else {
             onlineTimePlayer.leaveDisabledServer()
         }
-        if (usePlaceholderApi && onlineTimePlayer.savedOnlineTime != null) {
-            val arr = Utils.createPluginMessageArr(onlineTimePlayer, player.uniqueId)
-            server.sendData(plugin.pluginMessageChannel, arr)
+        if (usePlaceholderApi) {
+            if (onlineTimePlayer.savedOnlineTime != null) {
+                val arr = Messaging.createMainArr(onlineTimePlayer, player.uniqueId)
+                server.sendData(Messaging.CHANNEL_MAIN, arr)
+            }
+            val arr = Messaging.createTopArr(plugin)
+            server.sendData(Messaging.CHANNEL_TOP, arr)
         }
     }
 
