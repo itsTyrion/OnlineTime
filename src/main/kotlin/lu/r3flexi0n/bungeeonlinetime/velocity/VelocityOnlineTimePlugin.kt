@@ -13,6 +13,7 @@ import lu.r3flexi0n.bungeeonlinetime.common.config.ConfigLoader
 import lu.r3flexi0n.bungeeonlinetime.common.db.Database
 import lu.r3flexi0n.bungeeonlinetime.common.objects.OnlineTimePlayer
 import lu.r3flexi0n.bungeeonlinetime.common.utils.Messaging
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
 import org.slf4j.Logger
 import java.io.IOException
 import java.nio.file.Path
@@ -79,5 +80,23 @@ class VelocityOnlineTimePlugin @Inject constructor(
                 }.repeat(timerInterval.toLong(), TimeUnit.SECONDS).schedule()
             }
         }
+
+        proxy.scheduler.buildTask(this) { ->
+            for (player in proxy.allPlayers) {
+                val otp = onlineTimePlayers[player.uniqueId] ?: continue
+                val time = ((otp.savedOnlineTime ?: 0) + otp.getSessionOnlineTime()).floorDiv(60_000).toInt()
+                val reward = config.rewards[time] ?: continue
+                logger.info("Processing playtime reward for player ${player.username} with $time minutes")
+
+                for (cmd in reward.commands) {
+                    val cmd1 = cmd.replace("%PLAYER%", player.username)
+                    proxy.commandManager.executeAsync(proxy.consoleCommandSource, cmd1)
+                }
+                for (msg in reward.messages) {
+                    val msg1 = msg.replace("%PLAYER%", player.username)
+                    player.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize(msg1))
+                }
+            }
+        }.repeat(1L, TimeUnit.MINUTES).schedule()
     }
 }

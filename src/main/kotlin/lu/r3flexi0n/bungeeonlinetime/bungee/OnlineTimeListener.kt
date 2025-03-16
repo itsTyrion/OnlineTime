@@ -11,8 +11,6 @@ import net.md_5.bungee.event.EventHandler
 
 class OnlineTimeListener(private val plugin: BungeeOnlineTimePlugin) : Listener {
     private val logger = plugin.logger
-    private val disabledServers get() = plugin.config.plugin.disabledServers
-    private val usePlaceholderApi get() = plugin.config.plugin.usePlaceholderApi
 
     @EventHandler
     fun onJoin(e: PostLoginEvent) {
@@ -23,12 +21,11 @@ class OnlineTimeListener(private val plugin: BungeeOnlineTimePlugin) : Listener 
         val uuid = player.uniqueId
         val onlineTimePlayer = OnlineTimePlayer()
         plugin.onlineTimePlayers[uuid] = onlineTimePlayer
-        if (usePlaceholderApi)
-            asyncTask(
-                doTask = { plugin.database.getOnlineTime(uuid.toString()) },
-                onSuccess = { onlineTimePlayer.setSavedOnlineTime(if (it.isNotEmpty()) it[0].time else 0L) },
-                onError = { logger.error("Error while loading online time for player ${player.name}.", it) }
-            )
+        asyncTask(
+            doTask = { plugin.database.getOnlineTime(uuid.toString()) },
+            onSuccess = { onlineTimePlayer.setSavedOnlineTime(if (it.isNotEmpty()) it[0].time else 0L) },
+            onError = { logger.error("Error while loading online time for player ${player.name}.", it) }
+        )
     }
 
     @EventHandler
@@ -36,12 +33,12 @@ class OnlineTimeListener(private val plugin: BungeeOnlineTimePlugin) : Listener 
         val player = e.player
         val onlineTimePlayer = plugin.onlineTimePlayers[player.uniqueId] ?: return
         val server = player.server
-        if (disabledServers.contains(server.info.name)) {
+        if (plugin.config.plugin.disabledServers.contains(server.info.name)) {
             onlineTimePlayer.joinDisabledServer()
         } else {
             onlineTimePlayer.leaveDisabledServer()
         }
-        if (usePlaceholderApi) {
+        if (plugin.config.plugin.usePlaceholderApi) {
             if (onlineTimePlayer.savedOnlineTime != null) {
                 val arr = Messaging.createMainArr(onlineTimePlayer, player.uniqueId)
                 server.sendData(Messaging.CHANNEL_MAIN, arr)

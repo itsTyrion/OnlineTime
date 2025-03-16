@@ -10,8 +10,6 @@ import lu.r3flexi0n.bungeeonlinetime.common.utils.asyncTask
 
 class OnlineTimeListener(private val plugin: VelocityOnlineTimePlugin) {
     private val logger = plugin.logger
-    private val disabledServers get() = plugin.config.plugin.disabledServers
-    private val usePlaceholderApi get() = plugin.config.plugin.usePlaceholderApi
 
     @Subscribe
     fun onJoin(e: PostLoginEvent) {
@@ -22,16 +20,14 @@ class OnlineTimeListener(private val plugin: VelocityOnlineTimePlugin) {
         val uuid = player.uniqueId
         val onlineTimePlayer = OnlineTimePlayer()
         plugin.onlineTimePlayers[uuid] = onlineTimePlayer
-        if (usePlaceholderApi) {
-            asyncTask(
-                doTask = { plugin.database.getOnlineTime(uuid.toString()) },
-                onSuccess = { onlineTimePlayer.setSavedOnlineTime(if (it.isNotEmpty()) it[0].time else 0L) },
-                onError = { ex ->
-                    logger.error("Error while loading online time for player ${player.username}.")
-                    ex.printStackTrace()
-                }
-            )
-        }
+        asyncTask(
+            doTask = { plugin.database.getOnlineTime(uuid.toString()) },
+            onSuccess = { onlineTimePlayer.setSavedOnlineTime(if (it.isNotEmpty()) it[0].time else 0L) },
+            onError = { ex ->
+                logger.error("Error while loading online time for player ${player.username}.")
+                ex.printStackTrace()
+            }
+        )
     }
 
     @Subscribe
@@ -40,12 +36,12 @@ class OnlineTimeListener(private val plugin: VelocityOnlineTimePlugin) {
         val player = e.player
         val onlineTimePlayer = plugin.onlineTimePlayers[player.uniqueId] ?: return
         val server = player.currentServer.get()
-        if (disabledServers.contains(server.serverInfo.name)) {
+        if (plugin.config.plugin.disabledServers.contains(server.serverInfo.name)) {
             onlineTimePlayer.joinDisabledServer()
         } else {
             onlineTimePlayer.leaveDisabledServer()
         }
-        if (usePlaceholderApi) {
+        if (plugin.config.plugin.usePlaceholderApi) {
             if (onlineTimePlayer.savedOnlineTime != null) {
                 val arr = Messaging.createMainArr(onlineTimePlayer, player.uniqueId)!!
                 server.sendPluginMessage(plugin.pluginMessageChannelMain, arr)

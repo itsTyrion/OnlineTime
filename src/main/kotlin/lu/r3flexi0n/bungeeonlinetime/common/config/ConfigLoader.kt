@@ -41,8 +41,10 @@ object ConfigLoader {
     }
 
     private fun save(config: Config, settingsPath: Path) {
-        val representer = Representer(DumperOptions())
-        representer.defaultFlowStyle = FlowStyle.BLOCK
+        val dumperOptions = DumperOptions()
+        dumperOptions.isDereferenceAliases = true
+        dumperOptions.defaultFlowStyle = FlowStyle.BLOCK
+        val representer = Representer(dumperOptions)
 
         val typeDescription = TypeDescription(Config.Plugin::class.java)
         typeDescription.setExcludes("placeholderRefreshTimer")
@@ -51,7 +53,7 @@ object ConfigLoader {
         representer.addClassTag(Config.Plugin::class.java, Tag.MAP)
         representer.addClassTag(Config::class.java, Tag.MAP)
 
-        val yaml = Yaml(representer)
+        val yaml = Yaml(representer, dumperOptions)
 
         settingsPath.bufferedWriter().use { it.write(yaml.dump(config)) }
     }

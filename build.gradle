@@ -1,29 +1,29 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 plugins {
-    id "org.jetbrains.kotlin.jvm" version "2.0.21"
-    id "org.jetbrains.kotlin.kapt" version "2.0.21"
-    id "com.gradleup.shadow" version "8.3.3"
+    id "org.jetbrains.kotlin.jvm" version "2.1.10"
+    id "org.jetbrains.kotlin.kapt" version "2.1.10"
+    id "com.gradleup.shadow" version "8.3.6"
 }
 
 repositories {
     mavenCentral()
     maven {
-        name "Sonatype"
-        url uri("https://oss.sonatype.org/content/repositories/snapshots")
+        name = "Sonatype"
+        url = uri("https://oss.sonatype.org/content/repositories/snapshots")
     }
     maven {
-        name "PaperMC"
-        url uri("https://repo.papermc.io/repository/maven-public/")
+        name = "PaperMC"
+        url = uri("https://repo.papermc.io/repository/maven-public/")
     }
-    maven { url uri("https://jitpack.io") }
+    maven { url = uri("https://jitpack.io") }
 }
 
 dependencies {
-    implementation "org.xerial:sqlite-jdbc:3.46.1.3"
-    implementation "com.mysql:mysql-connector-j:9.1.0"
-    implementation "org.jetbrains.kotlin:kotlin-stdlib:2.0.21"
-    implementation "org.yaml:snakeyaml:2.2"
+    implementation "org.xerial:sqlite-jdbc:3.49.1.0"
+    implementation("com.mysql:mysql-connector-j:9.2.0") { exclude group: "com.google.protobuf", module: "protobuf-java" }
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:2.1.10"
+    implementation "org.yaml:snakeyaml:2.3"
     implementation "org.slf4j:slf4j-api:2.0.12"
     implementation "org.slf4j:slf4j-simple:2.0.12"
     compileOnly "net.md-5:bungeecord-api:1.21-R0.1-SNAPSHOT"
@@ -33,15 +33,15 @@ dependencies {
 }
 
 group = "lu.r3flexi0n"
-version = "8.5.0"
-description = "BungeeOnlineTime"
+version = "8.6.0"
+description = "OnlineTime"
 
 kotlin {
     jvmToolchain 17
 }
 
 kapt.arguments {
-    arg "mcPluginVersion", version
+    arg "mcPluginVersion", "$version"
 }
 
 shadowJar {

@@ -7,6 +7,8 @@ import lu.r3flexi0n.bungeeonlinetime.common.config.ConfigLoader
 import lu.r3flexi0n.bungeeonlinetime.common.db.Database
 import lu.r3flexi0n.bungeeonlinetime.common.objects.OnlineTimePlayer
 import lu.r3flexi0n.bungeeonlinetime.common.utils.Messaging
+import net.md_5.bungee.api.ChatColor
+import net.md_5.bungee.api.chat.TextComponent
 import net.md_5.bungee.api.plugin.Plugin
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -50,6 +52,7 @@ class BungeeOnlineTimePlugin : Plugin(), OnlineTimePlugin {
         if (config.plugin.usePlaceholderApi) {
             proxy.registerChannel(Messaging.CHANNEL_MAIN)
             proxy.registerChannel(Messaging.CHANNEL_TOP)
+
             val timerInterval = config.plugin.placeholderRefreshSeconds
             if (timerInterval > 0) {
                 proxy.scheduler.schedule(this, {
@@ -68,5 +71,23 @@ class BungeeOnlineTimePlugin : Plugin(), OnlineTimePlugin {
                 }, 0L, timerInterval.toLong(), TimeUnit.SECONDS)
             }
         }
+
+        proxy.scheduler.schedule(this, {
+            for (player in proxy.players) {
+                val otp = onlineTimePlayers[player.uniqueId] ?: continue
+                val time = ((otp.savedOnlineTime ?: 0) + otp.getSessionOnlineTime()).floorDiv(60_000).toInt()
+                val reward = config.rewards[time] ?: continue
+                logger.info("Processing playtime reward for player ${player.name} with $time minutes")
+
+                for (cmd in reward.commands) {
+                    val cmd1 = cmd.replace("%PLAYER%", player.name)
+                    proxy.pluginManager.dispatchCommand(proxy.console, cmd1)
+                }
+                for (msg in reward.messages) {
+                    val msg1 = msg.replace("%PLAYER%", player.name)
+                    player.sendMessage(TextComponent.fromLegacy(ChatColor.translateAlternateColorCodes('&', msg1)))
+                }
+            }
+        }, 5L, 60L, TimeUnit.SECONDS)
     }
 }

@@ -51,7 +51,25 @@ class Config {
         var password = "abc123"
     } // @formatter:on
 
+    var rewards: Map<Int, RewardAction> = mapOf(
+        1 to RewardAction(
+            messages = listOf("&aYou just spent your first minute here \\o/")
+        ),
+        2 to RewardAction(
+            commands = listOf("exampleCommandRanAtTwoMinutes %PLAYER%"),
+        ),
+        10 to RewardAction(
+            messages = listOf("&aHope you enjoyed the first 10 minutes! Here's 100 bucks, on the house."),
+            commands = listOf("eco give %PLAYER% 100")
+        )
+    )
+
+    class RewardAction(
+        var commands: List<String> = listOf(),
+        var messages: List<String> = listOf()
+    )
+
     companion object {
-        const val CURRENT_VERSION = 2
+        const val CURRENT_VERSION = 3
     }
 }
