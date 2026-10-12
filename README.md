@@ -6,7 +6,7 @@ Good for servers that want to reward active players, keep an eye on the most act
 
 For placeholder support and richer display integrations, see the companion project: https://github.com/itsTyrion/PlaytimeExpansion
 
-Total TL count: ![GitHub All Releases](https://img.shields.io/github/downloads/itsTyrion/OnlineTime/total.svg)
+Total DL count: ![GitHub All Releases](https://img.shields.io/github/downloads/itsTyrion/OnlineTime/total.svg)
 
 ## Features
 
